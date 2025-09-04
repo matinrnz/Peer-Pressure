@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Counselor's Guide to Peer Networks</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic page setup and typography */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            font-family: 'Gochi Hand', 'Vazirmatn', sans-serif;
+            background-color: #f4f1eb;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px; /* Base font size for mobile */
+        }
+
+        /* Main container for the simulation and UI */
+        .simulation-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border: 2px solid #333;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        /* The canvas where the simulation is drawn */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI Panels General Styling */
+        .panel {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.85);
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* Title and info panel at the top */
+        .header-panel {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 10px;
+        }
+        .header-panel h1 {
+            font-size: 22px;
+            margin: 0;
+        }
+        
+        /* Control panel at the bottom */
+        .control-panel {
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Intervention Panel */
+        .intervention-panel {
+            top: 90px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 180px;
+        }
+        .intervention-panel h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .intervention-panel .demo-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .intervention-panel .demo-buttons button {
+            padding: 5px;
+            font-size: 12px;
+        }
+
+
+        /* Box for narrative text */
+        .narrative-box {
+            flex-grow: 1;
+            flex-basis: 300px; /* Allow it to take space */
+        }
+        .narrative-box p {
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        /* Container for player action buttons */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+        }
+
+        /* General button styling */
+        .btn {
+            font-family: inherit;
+            font-size: 16px;
+            padding: 8px 12px; /* Adjust padding for panel buttons */
+            border-radius: 8px;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0px #333;
+            white-space: normal; /* Allow text to wrap */
+            width: 100%;
+            text-align: center; /* Center text for better appearance */
+            line-height: 1.2; /* Adjust for multiline text */
+        }
+        .actions .btn {
+            padding: 12px 18px; /* Original padding for main action button */
+            width: auto;
+        }
+        .btn:active {
+            box-shadow: 1px 1px 0px #333;
+            transform: translate(2px, 2px);
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: 1px 1px 0px #888;
+            transform: translate(2px, 2px);
+        }
+        
+        /* Specific button colors */
+        .btn-next-month { background-color: #87CEEB; }
+        .btn-restart { background-color: #FFB6C1; }
+        .btn.btn-toggle { background-color: #f0f0f0; }
+        .btn.btn-toggle.active {
+            background-color: #98FB98; /* Green when active */
+            box-shadow: inset 2px 2px 0px #333;
+        }
+        
+        /* UI for Action Points and Week counter */
+        .status-display {
+            display: flex;
+            gap: 15px;
+            font-size: 18px;
+        }
+
+        /* Modal for fullscreen messages */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content { max-width: 90%; }
+        .modal-content h2 { font-size: 28px; }
+        .modal-content p { font-size: 20px; line-height: 1.5; margin: 15px 0; }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white; padding: 5px 10px; border-radius: 5px;
+            font-size: 14px; pointer-events: none; opacity: 0;
+            transition: opacity 0.2s; white-space: nowrap; z-index: 50;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 110;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; bottom: 100px; }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+
+
+        /* Language Toggle Styles */
+        .lang-toggle button {
+            background: none; border: none; font-family: inherit; font-size: 16px;
+            cursor: pointer; padding: 5px 10px; border-radius: 5px;
+        }
+        .lang-toggle button.active { background-color: rgba(0,0,0,0.1); font-weight: bold; }
+        
+        /* RTL (Right-to-Left) Styles for Persian */
+        [dir="rtl"] { text-align: right; }
+        [dir="rtl"] .control-panel { flex-direction: row-reverse; }
+        [dir="rtl"] .narrative-box { margin-right: 0; margin-left: auto; }
+        [dir="rtl"] .actions { flex-direction: row-reverse; }
+        [dir="rtl"] .status-display { flex-direction: row-reverse; }
+        
+        /* Media Queries for Responsiveness */
+        @media (min-width: 768px) {
+            body { font-size: 18px; }
+            .simulation-container {
+                 width: 1000px; height: 650px; border-radius: 15px;
+            }
+            .header-panel h1 { font-size: 24px; }
+            .status-display { font-size: 20px; gap: 20px;}
+            .btn { font-size: 18px; }
+            .modal-content h2 { font-size: 36px; }
+            .modal-content p { font-size: 22px; }
+            .intervention-panel { top: 100px; }
+        }
+
+    </style>
+</head>
+<body dir="ltr">
+    <div class="simulation-container">
+        <canvas id="simulation-canvas"></canvas>
+        
+        <div class="header-panel panel">
+            <div>
+                <h1 data-lang-key="title">Vaping Prevention: A Practice Year</h1>
+                <div class="status-display">
+                    <div id="month-counter-container"><span data-lang-key="month_label">Month</span>: <span id="month-value">0</span></div>
+                    <div id="budget-counter-container"><span data-lang-key="budget_label">Budget</span>: $<span id="budget-value">1000</span></div>
+                </div>
+            </div>
+            <div class="lang-toggle">
+                <button id="lang-en" class="active">English</button>
+                <button id="lang-fa">فارسی</button>
+            </div>
+        </div>
+        
+        <div class="intervention-panel panel">
+            <h3 data-lang-key="interventions_title">Interventions</h3>
+            <button id="education-btn" class="btn btn-toggle" data-lang-key="education_btn">Run Education</button>
+            <button id="support-btn" class="btn" data-lang-key="support_btn">Support Session</button>
+            <button id="leaders-btn" class="btn" data-lang-key="leaders_btn">Recruit Leaders</button>
+            <button id="outreach-btn" class="btn" data-lang-key="outreach_btn">Outreach</button>
+            <div class="demo-buttons">
+                 <button id="demo-s-e" class="btn">S→E</button>
+                 <button id="demo-e-u" class="btn">E→U</button>
+                 <button id="demo-u-r" class="btn">U→R</button>
+                 <button id="demo-r-s" class="btn">R→S</button>
+            </div>
+        </div>
+
+        <div class="control-panel panel">
+            <div class="narrative-box">
+                <p id="narrative-text"></p>
+            </div>
+            <div class="actions">
+                <button id="next-month-btn" class="btn btn-next-month" data-lang-key="next_month_btn">End Month</button>
+            </div>
+        </div>
+        
+        <div id="report-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 data-lang-key="report_title">Monthly Report</h2>
+                <p id="report-text"></p>
+                <button id="continue-btn" class="btn">Continue</button>
+            </div>
+        </div>
+
+        <div id="end-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="end-modal-title"></h2>
+                <p id="end-modal-text"></p>
+                <button id="restart-btn" class="btn btn-restart" data-lang-key="restart_btn">Play Again?</button>
+            </div>
+        </div>
+
+        <div id="tooltip" class="tooltip"></div>
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script>
+        // --- SETUP ---
+        const canvas = document.getElementById('simulation-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.querySelector('.simulation-container');
+
+        // UI Elements
+        const narrativeTextEl = document.getElementById('narrative-text');
+        const monthValueEl = document.getElementById('month-value');
+        const budgetValueEl = document.getElementById('budget-value');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const endModal = document.getElementById('end-modal');
+        const tooltipEl = document.getElementById('tooltip');
+        const langEnBtn = document.getElementById('lang-en');
+        const langFaBtn = document.getElementById('lang-fa');
+        const bodyEl = document.body;
+        const educationBtn = document.getElementById('education-btn');
+        const supportBtn = document.getElementById('support-btn');
+        const leadersBtn = document.getElementById('leaders-btn');
+        const outreachBtn = document.getElementById('outreach-btn');
+        const reportModal = document.getElementById('report-modal');
+        const continueBtn = document.getElementById('continue-btn');
+        const toastEl = document.getElementById('toast');
+        const headerPanel = document.querySelector('.header-panel');
+        const interventionPanel = document.querySelector('.intervention-panel');
+        const controlPanel = document.querySelector('.control-panel');
+        
+        // --- TRANSLATIONS ---
+        const TRANSLATIONS = {
+            en: {
+                title: "Substance Use Prevention: A Practice Term",
+                month_label: "Month",
+                budget_label: "Budget",
+                interventions_title: "Interventions",
+                education_btn: "Run Education",
+                support_btn: "Support Session",
+                leaders_btn: "Recruit Leaders",
+                outreach_btn: "Outreach",
+                next_month_btn: "End Month",
+                restart_btn: "Play Again?",
+                report_title: "Monthly Report",
+                toast_outreach_success: "Outreach successful!",
+                toast_outreach_fail: "Outreach failed. The student was not receptive.",
+                toast_no_target: "No students in the target group for this intervention.",
+                narrative_start: "The school term begins. Monitor students and use interventions to keep substance use rates low. Click 'End Month' to begin.",
+                narrative_month: "You can now use interventions. Manage your budget carefully. When you are ready, click 'End Month' to see the results.",
+                game_win_title: "Congratulations!",
+                game_win_text: "You've successfully guided the students through the term, keeping the substance use rate below the goal!",
+                game_lose_title: "Term End Review",
+                game_lose_text: "The substance use rate was too high by the end of the term. Let's try a different strategy next time.",
+                game_lose_instant_title: "Intervention Required!",
+                game_lose_instant_text: "The substance use rate has become critical. The school has to step in. The simulation has ended.",
+                narratives: {
+                    tutorial_0: "Welcome! Your goal is to keep student substance use rates low. Let's see how the network changes over time. Click 'End Month'.",
+                    tutorial_1: "Some students are now 'Experimenting' (yellow halo) because their friends are. This is the S→E transition. Click 'End Month' again.",
+                    tutorial_2: "Now we can intervene. The 'Support Session' targets 'Experimenting' students to help them stop. It costs budget. Click the 'Support Session' button.",
+                    tutorial_3: "A student is now 'Using' (red halo). Use 'Outreach'. It targets the most connected 'Using' student to help them recover (blue halo). Click 'Outreach'.",
+                    tutorial_4: "Great! That student is 'Recovered' (blue halo). We can 'Recruit Leaders' from recovered students. Leaders are less likely to relapse. Click 'Recruit Leaders'.",
+                    tutorial_5: "'Run Education' is a monthly program that reduces the chance of students starting to experiment. Toggle it on. It will cost budget each month.",
+                    tutorial_6: "Tutorial complete! Now you manage the budget for a full school term. Keep the 'Using' rate below 15% to win. If it hits 30%, you lose. Good luck!",
+                }
+            },
+            fa: { 
+                title: "پیشگیری از اعتیاد: یک دوره تمرین",
+                month_label: "ماه",
+                budget_label: "بودجه",
+                interventions_title: "مداخلات",
+                education_btn: "اجرای آموزش",
+                support_btn: "جلسه پشتیبانی",
+                leaders_btn: "جذب رهبران",
+                outreach_btn: "ارتباط‌گیری",
+                next_month_btn: "پایان ماه",
+                restart_btn: "بازی دوباره؟",
+                report_title: "گزارش ماهانه",
+                toast_outreach_success: "ارتباط‌گیری موفق بود!",
+                toast_outreach_fail: "ارتباط‌گیری ناموفق بود. دانش‌آموز پذیرش نداشت.",
+                toast_no_target: "دانش‌آموزی در گروه هدف برای این مداخله وجود ندارد.",
+                narrative_start: "دوره تحصیلی آغاز می‌شود. دانش‌آموزان را زیر نظر بگیرید و از مداخلات برای پایین نگه داشتن نرخ اعتیاد استفاده کنید. برای شروع، «پایان ماه» را کلیک کنید.",
+                narrative_month: "اکنون می‌توانید از مداخلات استفاده کنید. بودجه خود را با دقت مدیریت کنید. وقتی آماده بودید، برای دیدن نتایج، «پایان ماه» را کلیک کنید.",
+                game_win_title: "تبریک می‌گوییم!",
+                game_win_text: "شما با موفقیت دانش‌آموزان را در طول این دوره راهنمایی کردید و نرخ اعتیاد را زیر هدف نگه داشتید!",
+                game_lose_title: "بررسی پایان دوره",
+                game_lose_text: "نرخ اعتیاد تا پایان دوره بیش از حد بالا بود. بیایید دفعه بعد استراتژی متفاوتی را امتحان کنیم.",
+                game_lose_instant_title: "نیاز به مداخله!",
+                game_lose_instant_text: "نرخ اعتیاد بحرانی شده است. مدرسه باید وارد عمل شود. شبیه‌سازی به پایان رسید.",
+                 narratives: {
+                    tutorial_0: "خوش آمدید! هدف شما پایین نگه داشتن نرخ اعتیاد دانش‌آموزان است. بیایید ببینیم شبکه چگونه در طول زمان تغییر می‌کند. روی «پایان ماه» کلیک کنید.",
+                    tutorial_1: "برخی از دانش‌آموزان به دلیل دوستانشان در حال «آزمایش» (هاله زرد) هستند. این انتقال S→E است. دوباره روی «پایان ماه» کلیک کنید.",
+                    tutorial_2: "اکنون می‌توانیم مداخله کنیم. «جلسه پشتیبانی» دانش‌آموزان «در حال آزمایش» را هدف قرار می‌دهد تا به آنها کمک کند متوقف شوند. این کار هزینه دارد. روی دکمه «جلسه پشتیبانی» کلیک کنید.",
+                    tutorial_3: "یک دانش‌آموز اکنون در حال «مصرف» (هاله قرمز) است. از «ارتباط‌گیری» استفاده کنید. این کار متصل‌ترین دانش‌آموز «در حال مصرف» را هدف قرار می‌دهد تا به بهبودی (هاله آبی) او کمک کند. روی «ارتباط‌گیری» کلیک کنید.",
+                    tutorial_4: "عالی! آن دانش‌آموز «بهبود یافته» (هاله آبی) است. ما می‌توانیم از بین دانش‌آموزان بهبود یافته «رهبران را جذب کنیم». رهبران کمتر احتمال دارد دوباره شروع کنند. روی «جذب رهبران» کلیک کنید.",
+                    tutorial_5: "«اجرای آموزش» یک برنامه ماهانه است که شانس شروع به آزمایش توسط دانش‌آموزان را کاهش می‌دهد. آن را روشن کنید. این کار هر ماه هزینه خواهد داشت.",
+                    tutorial_6: "آموزش کامل شد! اکنون شما بودجه را برای یک دوره تحصیلی کامل مدیریت می‌کنید. نرخ «مصرف» را زیر ۱۵٪ نگه دارید تا برنده شوید. اگر به ۳۰٪ برسد، می‌بازید. موفق باشید!",
+                }
+            }
+        };
+
+        // --- GAME STATE & CONSTANTS ---
+        const NODE_RADIUS = 15;
+        const STUDENT_NAMES = ["Alex", "Ben", "Chloe", "David", "Eva", "Finn", "Grace", "Henry", "Isla", "Jack", "Kate", "Leo", "Mia", "Noah", "Olivia"];
+        const COSTS = { education: 75, support: 100, leaders: 250, outreach: 150 };
+        const WIN_THRESHOLD = 0.15; // Using < 15% to win
+        const LOSE_THRESHOLD = 0.30; // Using >= 30% to lose
+        const TUTORIAL_LAST_STEP = 6;
+        
+        let gameState = {
+            month: 0,
+            budget: 1000,
+            isEducationRunning: false,
+            nodes: [],
+            links: [],
+            isPaused: false,
+            language: 'en',
+            lastMonthUsingPercent: 0,
+            tutorialStep: 0,
+            hasCompletedTutorial: false,
+        };
+        
+        // --- SIMULATION SETUP (D3.js) ---
+        let width, height;
+        let simulation = d3.forceSimulation()
+            .on("tick", render);
+            
+        // --- CORE GAME LOGIC ---
+        function setLanguage(lang) {
+            gameState.language = lang;
+            bodyEl.dir = lang === 'fa' ? 'rtl' : 'ltr';
+            bodyEl.style.fontFamily = lang === 'fa' ? "'Vazirmatn', sans-serif" : "'Gochi Hand', cursive";
+
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (TRANSLATIONS[lang][key]) {
+                    el.textContent = TRANSLATIONS[lang][key];
+                }
+            });
+            updateUI();
+        }
+
+        function setupInitialState() {
+            gameState.isPaused = false;
+            
+            gameState.nodes = STUDENT_NAMES.map((name, i) => ({
+                id: i, name: name, state: 'S', isInfluencer: false, isLeader: false
+            }));
+
+            gameState.links = [
+                {source: 0, target: 1}, {source: 1, target: 2}, {source: 2, target: 3},
+                {source: 0, target: 4}, {source: 1, target: 5}, {source: 2, target: 6},
+                {source: 3, target: 7}, {source: 4, target: 8}, {source: 5, target: 9},
+                {source: 6, target: 10}, {source: 7, target: 11}, {source: 4, target: 5},
+                {source: 8, target: 9}, {source: 10, target: 11}, {source: 12, target: 13},
+                {source: 13, target: 14}, {source: 14, target: 12}, 
+                {source: 2, target: 8}, {source: 2, target: 9}, {source: 2, target: 12},
+                {source: 2, target: 0}
+            ].map(link => ({...link, strength: 1.0}));
+
+            gameState.nodes.find(n => n.name === "Chloe").isInfluencer = true;
+            
+            simulation.nodes(gameState.nodes)
+                .force("link", d3.forceLink(gameState.links).id(d => d.id).distance(80).strength(0.1))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+            
+            if (gameState.hasCompletedTutorial) {
+                startFullGame();
+            } else {
+                setupTutorialStep(0);
+            }
+            
+            endModal.style.display = 'none';
+            reportModal.style.display = 'none';
+            resizeCanvas(); 
+            setLanguage(gameState.language);
+        }
+
+        function setupTutorialStep(step) {
+            gameState.tutorialStep = step;
+            // Reset node states for a clean slate, then apply scripted events
+            gameState.nodes.forEach(n => { n.state = 'S'; n.isLeader = false; });
+            gameState.isEducationRunning = false;
+
+            switch(step) {
+                case 0:
+                    // Initial state is clean
+                    break;
+                case 1:
+                    gameState.nodes[11].state = 'E'; // Leo
+                    gameState.nodes[12].state = 'E'; // Mia
+                    break;
+                case 2:
+                    gameState.nodes[11].state = 'E';
+                    gameState.nodes[9].state = 'E';
+                    break;
+                case 3:
+                     gameState.nodes[2].state = 'U'; // Chloe (influencer)
+                    break;
+                case 4:
+                    gameState.nodes[2].state = 'R';
+                    break;
+                case 5:
+                    // clean state to just show the button
+                    break;
+                case TUTORIAL_LAST_STEP:
+                    gameState.hasCompletedTutorial = true;
+                    startFullGame();
+                    return; // a full UI update is called in startFullGame
+            }
+            updateUI();
+            simulation.alpha(0.3).restart();
+        }
+
+        function startFullGame() {
+            gameState.month = 0;
+            gameState.budget = 1000;
+            gameState.isEducationRunning = false;
+            gameState.lastMonthUsingPercent = 0;
+            gameState.nodes.forEach(n => { n.state = 'S'; n.isLeader = false; });
+            // Set initial state for the full game: 3 random users
+            const shuffledNodes = [...gameState.nodes].sort(() => 0.5 - Math.random());
+            for (let i = 0; i < 3; i++) {
+                if (shuffledNodes[i]) {
+                    shuffledNodes[i].state = 'U';
+                }
+            }
+            updateUI();
+        }
+        
+        function advanceMonth() {
+            if (gameState.isPaused) return;
+
+            // Handle tutorial progression
+            if (gameState.tutorialStep < TUTORIAL_LAST_STEP) {
+                if (gameState.tutorialStep === 0) setupTutorialStep(1);
+                else if (gameState.tutorialStep === 1) setupTutorialStep(2);
+                return;
+            }
+
+            // --- Full Game Logic ---
+            gameState.isPaused = true;
+            runMonthlySimulation();
+            const usingCount = gameState.nodes.filter(n => n.state === 'U').length;
+            const usingPercent = usingCount / gameState.nodes.length;
+            
+            if (usingPercent >= LOSE_THRESHOLD) {
+                endGame(false, true);
+                return;
+            }
+            
+            gameState.month++;
+            if (gameState.month >= 4) {
+                endGame(usingPercent < WIN_THRESHOLD, false);
+                return;
+            }
+            showReportCard(usingPercent);
+        }
+
+        function runMonthlySimulation() {
+            if (gameState.isEducationRunning) {
+                gameState.budget -= COSTS.education;
+            }
+
+            const transitions = [];
+
+            gameState.nodes.forEach(node => {
+                const neighbors = getNeighbors(node.id);
+                if (node.state === 'S') {
+                    const riskyNeighbors = neighbors.filter(n => n.node.state === 'E' || n.node.state === 'U').length;
+                    let probability = riskyNeighbors * 0.1;
+                    if (gameState.isEducationRunning) probability *= 0.5;
+                    if (Math.random() < probability) transitions.push({node: node, newState: 'E'});
+                }
+                else if (node.state === 'E') {
+                    if (Math.random() < 0.20) transitions.push({node: node, newState: 'U'});
+                    else if (Math.random() < 0.10) transitions.push({node: node, newState: 'S'});
+                }
+                else if (node.state === 'R') {
+                    let probability = 0.1;
+                    if (node.isLeader) probability = 0.02;
+                    if (Math.random() < probability) transitions.push({node: node, newState: 'S'});
+                }
+            });
+
+            transitions.forEach(t => { t.node.state = t.newState; });
+            simulation.alpha(0.3).restart();
+        }
+        
+        function updateUI() {
+            const lang = gameState.language;
+            
+            if (gameState.tutorialStep < TUTORIAL_LAST_STEP) {
+                narrativeTextEl.textContent = TRANSLATIONS[lang].narratives['tutorial_' + gameState.tutorialStep];
+                monthValueEl.textContent = '-';
+                budgetValueEl.textContent = '----';
+
+                // Disable all buttons first
+                const allButtons = [educationBtn, supportBtn, leadersBtn, outreachBtn];
+                allButtons.forEach(btn => btn.disabled = true);
+                educationBtn.classList.remove('active');
+
+                // Enable buttons based on tutorial step
+                switch(gameState.tutorialStep) {
+                    case 2: supportBtn.disabled = false; break;
+                    case 3: outreachBtn.disabled = false; break;
+                    case 4: leadersBtn.disabled = false; break;
+                    case 5: educationBtn.disabled = false; break;
+                }
+                nextMonthBtn.disabled = [2,3,4,5].includes(gameState.tutorialStep);
+
+            } else {
+                // Full game UI
+                narrativeTextEl.textContent = gameState.month === 0 ? TRANSLATIONS[lang].narrative_start : TRANSLATIONS[lang].narrative_month;
+                monthValueEl.textContent = gameState.month;
+                budgetValueEl.textContent = Math.max(0, gameState.budget);
+                const budget = gameState.budget;
+
+                educationBtn.disabled = gameState.isEducationRunning ? false : budget < COSTS.education;
+                supportBtn.disabled = budget < COSTS.support;
+                leadersBtn.disabled = budget < COSTS.leaders;
+                outreachBtn.disabled = budget < COSTS.outreach;
+                nextMonthBtn.disabled = gameState.isPaused;
+
+                educationBtn.classList.toggle('active', gameState.isEducationRunning);
+                const educationCostText = gameState.isEducationRunning ? ` (On, $${COSTS.education}/mo)` : ` ($${COSTS.education}/mo)`;
+                educationBtn.textContent = TRANSLATIONS[lang].education_btn + educationCostText;
+                supportBtn.textContent = `${TRANSLATIONS[lang].support_btn} ($${COSTS.support})`;
+                leadersBtn.textContent = `${TRANSLATIONS[lang].leaders_btn} ($${COSTS.leaders})`;
+                outreachBtn.textContent = `${TRANSLATIONS[lang].outreach_btn} ($${COSTS.outreach})`;
+            }
+        }
+
+        function handleIntervention(type) {
+             if (gameState.tutorialStep < TUTORIAL_LAST_STEP) {
+                 // Handle tutorial actions
+                 switch(type) {
+                     case 'support': if (gameState.tutorialStep === 2) setupTutorialStep(3); break;
+                     case 'outreach': if (gameState.tutorialStep === 3) setupTutorialStep(4); break;
+                     case 'leaders': if (gameState.tutorialStep === 4) setupTutorialStep(5); break;
+                     case 'education': if (gameState.tutorialStep === 5) setupTutorialStep(6); break;
+                 }
+                 return;
+             }
+
+            // Full game intervention logic
+            if (gameState.isPaused && gameState.month > 0) return;
+
+            switch(type) {
+                case 'education':
+                    if (!gameState.isEducationRunning && gameState.budget < COSTS.education) return;
+                    gameState.isEducationRunning = !gameState.isEducationRunning;
+                    break;
+                case 'support':
+                    if (gameState.budget < COSTS.support) return;
+                    const experimenting = gameState.nodes.filter(n => n.state === 'E');
+                    if (experimenting.length > 0) {
+                        gameState.budget -= COSTS.support;
+                        const targetCount = Math.min(experimenting.length, 2);
+                        for(let i=0; i < targetCount; i++) experimenting[i].state = 'S';
+                    } else showToast(TRANSLATIONS[gameState.language].toast_no_target, 'error');
+                    break;
+                case 'leaders':
+                     if (gameState.budget < COSTS.leaders) return;
+                     const recovered = gameState.nodes.filter(n => n.state === 'R' && !n.isLeader);
+                     if (recovered.length > 0) {
+                        gameState.budget -= COSTS.leaders;
+                        recovered[0].isLeader = true;
+                     } else showToast(TRANSLATIONS[gameState.language].toast_no_target, 'error');
+                    break;
+                case 'outreach':
+                    if (gameState.budget < COSTS.outreach) return;
+                    const using = gameState.nodes.filter(n => n.state === 'U');
+                    if (using.length > 0) {
+                        gameState.budget -= COSTS.outreach;
+                        using.sort((a, b) => getDegree(b.id) - getDegree(a.id));
+                        const target = using[0];
+                        if (Math.random() < 0.6) {
+                            target.state = 'R';
+                            showToast(TRANSLATIONS[gameState.language].toast_outreach_success, 'success');
+                        } else showToast(TRANSLATIONS[gameState.language].toast_outreach_fail, 'error');
+                    } else showToast(TRANSLATIONS[gameState.language].toast_no_target, 'error');
+                    break;
+            }
+            updateUI();
+            render();
+        }
+
+        function showReportCard(usingPercent) {
+            const trend = usingPercent > gameState.lastMonthUsingPercent ? '↑' : (usingPercent < gameState.lastMonthUsingPercent ? '↓' : '→');
+            const reportContent = `
+                Using Rate: ${(usingPercent * 100).toFixed(1)}% ${trend}<br>
+                Remaining Budget: $${Math.max(0, gameState.budget)}
+            `;
+            document.getElementById('report-text').innerHTML = reportContent;
+            reportModal.style.display = 'flex';
+            gameState.lastMonthUsingPercent = usingPercent;
+        }
+
+        function endGame(didWin, isInstantLoss) {
+            gameState.isPaused = true;
+            const lang = TRANSLATIONS[gameState.language];
+            const titleEl = document.getElementById('end-modal-title');
+            const textEl = document.getElementById('end-modal-text');
+
+            if (isInstantLoss) {
+                titleEl.textContent = lang.game_lose_instant_title;
+                textEl.textContent = lang.game_lose_instant_text;
+            } else if (didWin) {
+                titleEl.textContent = lang.game_win_title;
+                textEl.textContent = lang.game_win_text;
+            } else {
+                titleEl.textContent = lang.game_lose_title;
+                textEl.textContent = lang.game_lose_text;
+            }
+            endModal.style.display = 'flex';
+        }
+
+        function showToast(message, type = 'success') {
+            toastEl.textContent = message;
+            toastEl.className = `toast show ${type}`;
+            setTimeout(() => {
+                toastEl.className = `toast ${type}`;
+            }, 3000);
+        }
+        
+        // --- RENDERING ---
+        function render() {
+            if (!gameState.nodes || gameState.nodes.length === 0) return;
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Constrain nodes to be visible within the UI panels
+            const padding = NODE_RADIUS * 2;
+            const topBoundary = headerPanel.offsetHeight + padding;
+            const leftBoundary = interventionPanel.offsetWidth + padding;
+            const rightBoundary = width - padding;
+            const bottomBoundary = height - controlPanel.offsetHeight - padding;
+
+            gameState.nodes.forEach(d => {
+                d.x = Math.max(leftBoundary, Math.min(rightBoundary, d.x));
+                d.y = Math.max(topBoundary, Math.min(bottomBoundary, d.y));
+            });
+
+            ctx.clearRect(0, 0, canvas.width / dpr , canvas.height / dpr);
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2;
+            gameState.links.forEach(d => {
+                ctx.beginPath(); ctx.moveTo(d.source.x, d.source.y); ctx.lineTo(d.target.x, d.target.y);
+                ctx.strokeStyle = '#aaa'; ctx.stroke();
+            });
+            gameState.nodes.forEach(d => {
+                const stateAuras = { S: 'rgba(0, 0, 255, 0.4)', E: 'rgba(255, 255, 0, 0.4)', U: 'rgba(255, 0, 0, 0.4)', R: 'rgba(0, 255, 0, 0.4)' };
+                if(d.state in stateAuras) {
+                    ctx.fillStyle = stateAuras[d.state]; ctx.beginPath();
+                    ctx.arc(d.x, d.y, NODE_RADIUS + 4, 0, 2 * Math.PI); ctx.fill();
+                }
+                ctx.beginPath(); ctx.arc(d.x, d.y, NODE_RADIUS, 0, 2 * Math.PI);
+                ctx.fillStyle = d.isLeader ? '#FFD700' : (d.isInfluencer ? '#f0eada' : '#fff');
+                ctx.fill(); ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawFace(ctx, d.x, d.y, d.state);
+            });
+        }
+        
+        function drawFace(ctx, x, y, state) {
+            const stateMap = { S: 'healthy', E: 'atRisk', U: 'risky', R: 'resilient' };
+            const mappedState = stateMap[state] || 'healthy';
+            ctx.fillStyle = '#333'; ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(x - 5, y - 4, 1.5, 0, 2 * Math.PI); ctx.arc(x + 5, y - 4, 1.5, 0, 2 * Math.PI); ctx.fill();
+            ctx.beginPath();
+            switch(mappedState) {
+                case 'risky': ctx.arc(x, y + 8, 5, Math.PI * 0.1, Math.PI * 0.9, true); break;
+                case 'atRisk': ctx.moveTo(x - 5, y + 6); ctx.lineTo(x + 5, y + 6); break;
+                case 'resilient': ctx.arc(x, y + 4, 6, Math.PI * 0.1, Math.PI * 0.9); break;
+                default: ctx.arc(x, y + 5, 5, Math.PI * 0.2, Math.PI * 0.8); break;
+            }
+            ctx.stroke();
+        }
+
+        // --- UTILITY & HELPER FUNCTIONS ---
+        function findNodeAt(x, y) { return gameState.nodes.find(node => Math.sqrt((x - node.x)**2 + (y - node.y)**2) < NODE_RADIUS * 1.5); }
+        function getNeighbors(nodeId) {
+            const neighbors = [];
+            if (!gameState.links) return neighbors;
+            gameState.links.forEach(link => {
+                if (link.source.id === nodeId) neighbors.push({node: link.target});
+                else if (link.target.id === nodeId) neighbors.push({node: link.source});
+            });
+            return neighbors;
+        }
+        function getDegree(nodeId) {
+            return gameState.links.filter(l => l.source.id === nodeId || l.target.id === nodeId).length;
+        }
+
+        function handleMouseMove(event) {
+            const [mouseX, mouseY] = d3.pointer(event);
+            const targetNode = findNodeAt(mouseX, mouseY);
+            if (targetNode) {
+                tooltipEl.style.opacity = 1; tooltipEl.style.left = `${event.clientX + 15}px`; tooltipEl.style.top = `${event.clientY}px`;
+                let tooltipText = `${targetNode.name} (State: ${targetNode.state})`;
+                if (targetNode.isLeader) tooltipText += " (Leader)";
+                else if (targetNode.isInfluencer) tooltipText += " (Influencer)";
+                tooltipEl.innerHTML = tooltipText;
+            } else { tooltipEl.style.opacity = 0; }
+        }
+
+        function handleDemoClick(fromState, toState) {
+            const target = gameState.nodes.find(n => n.state === fromState);
+            if(target) {
+                target.state = toState;
+                render();
+            }
+        }
+
+        function resizeCanvas() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+            
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            ctx.scale(dpr, dpr);
+
+            if (simulation && simulation.force("center")) {
+                // Adjust the center of the graph to avoid UI panels
+                const padding = NODE_RADIUS * 2;
+                const topBoundary = headerPanel.offsetHeight + padding;
+                const leftBoundary = interventionPanel.offsetWidth + padding;
+                const rightBoundary = width - padding;
+                const bottomBoundary = height - controlPanel.offsetHeight - padding;
+                const centerX = leftBoundary + (rightBoundary - leftBoundary) / 2;
+                const centerY = topBoundary + (bottomBoundary - topBoundary) / 2;
+                
+                simulation.force("center").x(centerX).y(centerY);
+                simulation.alpha(0.3).restart();
+            } else {
+                render();
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        
+        
+        // --- EVENT LISTENERS ---
+        nextMonthBtn.addEventListener('click', advanceMonth);
+        restartBtn.addEventListener('click', setupInitialState);
+        container.addEventListener('mousemove', handleMouseMove);
+        langEnBtn.addEventListener('click', () => setLanguage('en'));
+        langFaBtn.addEventListener('click', () => setLanguage('fa'));
+        educationBtn.addEventListener('click', () => handleIntervention('education'));
+        supportBtn.addEventListener('click', () => handleIntervention('support'));
+        leadersBtn.addEventListener('click', () => handleIntervention('leaders'));
+        outreachBtn.addEventListener('click', () => handleIntervention('outreach'));
+        continueBtn.addEventListener('click', () => {
+            reportModal.style.display = 'none';
+            gameState.isPaused = false;
+            updateUI();
+        });
+
+        // Demo buttons
+        document.getElementById('demo-s-e').addEventListener('click', () => handleDemoClick('S', 'E'));
+        document.getElementById('demo-e-u').addEventListener('click', () => handleDemoClick('E', 'U'));
+        document.getElementById('demo-u-r').addEventListener('click', () => handleDemoClick('U', 'R'));
+        document.getElementById('demo-r-s').addEventListener('click', () => handleDemoClick('R', 'S'));
+
+        // --- INITIALIZATION ---
+        setupInitialState();
+        
+    </script>
+</body>
+</html>
