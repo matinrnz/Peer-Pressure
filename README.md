@@ -3,7 +3,7 @@
 Department of Industrial and Systems Engineering, Tarbiat Modares University  
 - **Course**: Social Networks Analysis in Healthcare  
 - **Professor**: Dr. Jalalimanesh  
-- **Students**: Matinrh Rangzan, Faezeh Zare, Paria Sadeghi  
+- **Students**: Matineh Rangzan, Faezeh Zare, Paria Sadeghi  
 
 ---
 
