@@ -102,17 +102,6 @@
             font-size: 1.1em;
             text-align: center;
         }
-        .intervention-panel .demo-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .intervention-panel .demo-buttons button {
-            padding: 5px;
-            font-size: 12px;
-        }
-
 
         /* Box for narrative text */
         .narrative-box {
@@ -193,9 +182,20 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        .modal-content { max-width: 90%; }
+        .modal-content { 
+            max-width: 90%; 
+            position: relative;
+        }
         .modal-content h2 { font-size: 28px; }
-        .modal-content p { font-size: 20px; line-height: 1.5; margin: 15px 0; }
+        .modal-content p { font-size: 20px; line-height: 1.5; margin: 15px 0; text-align: left; }
+        #end-modal-link-container {
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .modal-content a {
+            color: #8c6daf;
+            font-weight: bold;
+        }
 
         /* Tooltip */
         .tooltip {
@@ -238,6 +238,7 @@
         [dir="rtl"] .narrative-box { margin-right: 0; margin-left: auto; }
         [dir="rtl"] .actions { flex-direction: row-reverse; }
         [dir="rtl"] .status-display { flex-direction: row-reverse; }
+        [dir="rtl"] .modal-content p { text-align: right; }
         
         /* Media Queries for Responsiveness */
         @media (min-width: 768px) {
@@ -250,6 +251,7 @@
             .btn { font-size: 18px; }
             .modal-content h2 { font-size: 36px; }
             .modal-content p { font-size: 22px; }
+            .modal-content { max-width: 600px; }
             .intervention-panel { top: 100px; }
         }
 
@@ -261,7 +263,7 @@
         
         <div class="header-panel panel">
             <div>
-                <h1 data-lang-key="title">Vaping Prevention: A Practice Year</h1>
+                <h1 data-lang-key="title">Substance Use Prevention: A Practice Term</h1>
                 <div class="status-display">
                     <div id="month-counter-container"><span data-lang-key="month_label">Month</span>: <span id="month-value">0</span></div>
                     <div id="budget-counter-container"><span data-lang-key="budget_label">Budget</span>: $<span id="budget-value">1000</span></div>
@@ -279,12 +281,6 @@
             <button id="support-btn" class="btn" data-lang-key="support_btn">Support Session</button>
             <button id="leaders-btn" class="btn" data-lang-key="leaders_btn">Recruit Leaders</button>
             <button id="outreach-btn" class="btn" data-lang-key="outreach_btn">Outreach</button>
-            <div class="demo-buttons">
-                 <button id="demo-s-e" class="btn">S→E</button>
-                 <button id="demo-e-u" class="btn">E→U</button>
-                 <button id="demo-u-r" class="btn">U→R</button>
-                 <button id="demo-r-s" class="btn">R→S</button>
-            </div>
         </div>
 
         <div class="control-panel panel">
@@ -308,6 +304,7 @@
             <div class="modal-content">
                 <h2 id="end-modal-title"></h2>
                 <p id="end-modal-text"></p>
+                <p id="end-modal-link-container" data-lang-key="end_modal_link_text_full"></p>
                 <button id="restart-btn" class="btn btn-restart" data-lang-key="restart_btn">Play Again?</button>
             </div>
         </div>
@@ -362,21 +359,22 @@
                 toast_outreach_fail: "Outreach failed. The student was not receptive.",
                 toast_no_target: "No students in the target group for this intervention.",
                 narrative_start: "The school term begins. Monitor students and use interventions to keep substance use rates low. Click 'End Month' to begin.",
-                narrative_month: "You can now use interventions. Manage your budget carefully. When you are ready, click 'End Month' to see the results.",
+                narrative_month: "You can now use interventions during this four-month term. Manage your budget carefully. When you are ready, click 'End Month' to see the results.",
                 game_win_title: "Congratulations!",
                 game_win_text: "You've successfully guided the students through the term, keeping the substance use rate below the goal!",
                 game_lose_title: "Term End Review",
                 game_lose_text: "The substance use rate was too high by the end of the term. Let's try a different strategy next time.",
                 game_lose_instant_title: "Intervention Required!",
                 game_lose_instant_text: "The substance use rate has become critical. The school has to step in. The simulation has ended.",
+                end_modal_link_text_full: `For more information or to download the NetLogo version, visit our <a href="https://github.com/matinrnz/Peer-Pressure" target="_blank">GitHub page</a>.`,
                 narratives: {
-                    tutorial_0: "Welcome! Your goal is to keep student substance use rates low. Let's see how the network changes over time. Click 'End Month'.",
-                    tutorial_1: "Some students are now 'Experimenting' (yellow halo) because their friends are. This is the S→E transition. Click 'End Month' again.",
-                    tutorial_2: "Now we can intervene. The 'Support Session' targets 'Experimenting' students to help them stop. It costs budget. Click the 'Support Session' button.",
-                    tutorial_3: "A student is now 'Using' (red halo). Use 'Outreach'. It targets the most connected 'Using' student to help them recover (blue halo). Click 'Outreach'.",
-                    tutorial_4: "Great! That student is 'Recovered' (blue halo). We can 'Recruit Leaders' from recovered students. Leaders are less likely to relapse. Click 'Recruit Leaders'.",
-                    tutorial_5: "'Run Education' is a monthly program that reduces the chance of students starting to experiment. Toggle it on. It will cost budget each month.",
-                    tutorial_6: "Tutorial complete! Now you manage the budget for a full school term. Keep the 'Using' rate below 15% to win. If it hits 30%, you lose. Good luck!",
+                    tutorial_0: "Welcome! This simulation explains the SEUR model. All students start as 'Susceptible' (blue halo). Click 'End Month' to see what happens next.",
+                    tutorial_1: "Some students are now 'Experimenting' (yellow halo). They were influenced by friends. Click 'End Month' to see how this can progress.",
+                    tutorial_2: "One student is now 'Using' (red halo). This is a critical stage. We need to intervene. Click the 'Outreach' button to help them.",
+                    tutorial_3: "Great! Outreach helped the student become 'Recovered' (green halo). Now, let's strengthen our community. Click 'Recruit Leaders' to make this student a positive influence.",
+                    tutorial_4: "That student is now a 'Leader' (gold). They are much less likely to relapse. Now let's learn about prevention. Click 'Run Education'.",
+                    tutorial_5: "'Run Education' is now active. This program helps prevent 'Susceptible' students from starting to experiment. It costs a bit of budget each month.",
+                    tutorial_6: "Tutorial complete! Now you manage the budget for a four-month term. Keep the 'Using' rate below 15% to win. If it hits 30%, you lose. Good luck!",
                 }
             },
             fa: { 
@@ -395,21 +393,22 @@
                 toast_outreach_fail: "ارتباط‌گیری ناموفق بود. دانش‌آموز پذیرش نداشت.",
                 toast_no_target: "دانش‌آموزی در گروه هدف برای این مداخله وجود ندارد.",
                 narrative_start: "دوره تحصیلی آغاز می‌شود. دانش‌آموزان را زیر نظر بگیرید و از مداخلات برای پایین نگه داشتن نرخ اعتیاد استفاده کنید. برای شروع، «پایان ماه» را کلیک کنید.",
-                narrative_month: "اکنون می‌توانید از مداخلات استفاده کنید. بودجه خود را با دقت مدیریت کنید. وقتی آماده بودید، برای دیدن نتایج، «پایان ماه» را کلیک کنید.",
+                narrative_month: "اکنون می‌توانید در این دوره چهار ماهه از مداخلات استفاده کنید. بودجه خود را با دقت مدیریت کنید. وقتی آماده بودید، برای دیدن نتایج، «پایان ماه» را کلیک کنید.",
                 game_win_title: "تبریک می‌گوییم!",
                 game_win_text: "شما با موفقیت دانش‌آموزان را در طول این دوره راهنمایی کردید و نرخ اعتیاد را زیر هدف نگه داشتید!",
                 game_lose_title: "بررسی پایان دوره",
                 game_lose_text: "نرخ اعتیاد تا پایان دوره بیش از حد بالا بود. بیایید دفعه بعد استراتژی متفاوتی را امتحان کنیم.",
                 game_lose_instant_title: "نیاز به مداخله!",
                 game_lose_instant_text: "نرخ اعتیاد بحرانی شده است. مدرسه باید وارد عمل شود. شبیه‌سازی به پایان رسید.",
+                end_modal_link_text_full: `برای اطلاعات بیشتر یا دانلود نسخه NetLogo، از <a href="https://github.com/matinrnz/Peer-Pressure" target="_blank">صفحه گیت‌هاب</a> ما دیدن کنید.`,
                  narratives: {
-                    tutorial_0: "خوش آمدید! هدف شما پایین نگه داشتن نرخ اعتیاد دانش‌آموزان است. بیایید ببینیم شبکه چگونه در طول زمان تغییر می‌کند. روی «پایان ماه» کلیک کنید.",
-                    tutorial_1: "برخی از دانش‌آموزان به دلیل دوستانشان در حال «آزمایش» (هاله زرد) هستند. این انتقال S→E است. دوباره روی «پایان ماه» کلیک کنید.",
-                    tutorial_2: "اکنون می‌توانیم مداخله کنیم. «جلسه پشتیبانی» دانش‌آموزان «در حال آزمایش» را هدف قرار می‌دهد تا به آنها کمک کند متوقف شوند. این کار هزینه دارد. روی دکمه «جلسه پشتیبانی» کلیک کنید.",
-                    tutorial_3: "یک دانش‌آموز اکنون در حال «مصرف» (هاله قرمز) است. از «ارتباط‌گیری» استفاده کنید. این کار متصل‌ترین دانش‌آموز «در حال مصرف» را هدف قرار می‌دهد تا به بهبودی (هاله آبی) او کمک کند. روی «ارتباط‌گیری» کلیک کنید.",
-                    tutorial_4: "عالی! آن دانش‌آموز «بهبود یافته» (هاله آبی) است. ما می‌توانیم از بین دانش‌آموزان بهبود یافته «رهبران را جذب کنیم». رهبران کمتر احتمال دارد دوباره شروع کنند. روی «جذب رهبران» کلیک کنید.",
-                    tutorial_5: "«اجرای آموزش» یک برنامه ماهانه است که شانس شروع به آزمایش توسط دانش‌آموزان را کاهش می‌دهد. آن را روشن کنید. این کار هر ماه هزینه خواهد داشت.",
-                    tutorial_6: "آموزش کامل شد! اکنون شما بودجه را برای یک دوره تحصیلی کامل مدیریت می‌کنید. نرخ «مصرف» را زیر ۱۵٪ نگه دارید تا برنده شوید. اگر به ۳۰٪ برسد، می‌بازید. موفق باشید!",
+                    tutorial_0: "خوش آمدید! این شبیه‌سازی مدل SEUR را توضیح می‌دهد. همه دانش‌آموزان به عنوان 'آسیب‌پذیر' (هاله آبی) شروع می‌کنند. برای دیدن اتفاقات بعدی، روی 'پایان ماه' کلیک کنید.",
+                    tutorial_1: "برخی دانش‌آموزان اکنون 'در حال آزمایش' (هاله زرد) هستند. آنها تحت تأثیر دوستانشان قرار گرفته‌اند. برای دیدن چگونگی پیشرفت این وضعیت، روی 'پایان ماه' کلیک کنید.",
+                    tutorial_2: "یک دانش‌آموز اکنون 'مصرف‌کننده' (هاله قرمز) است. این یک مرحله بحرانی است. باید مداخله کنیم. برای کمک به او، روی دکمه 'ارتباط‌گیری' کلیک کنید.",
+                    tutorial_3: "عالی! ارتباط‌گیری به دانش‌آموز کمک کرد تا 'بهبودیافته' (هاله سبز) شود. حالا، بیایید جامعه خود را تقویت کنیم. برای تبدیل این دانش‌آموز به یک تأثیر مثبت، روی 'جذب رهبران' کلیک کنید.",
+                    tutorial_4: "آن دانش‌آموز اکنون یک 'رهبر' (طلایی) است. احتمال بازگشت او بسیار کمتر است. حالا بیایید در مورد پیشگیری یاد بگیریم. روی 'اجرای آموزش' کلیک کنید.",
+                    tutorial_5: "'اجرای آموزش' اکنون فعال است. این برنامه به جلوگیری از شروع آزمایش توسط دانش‌آموزان 'آسیب‌پذیر' کمک می‌کند. این کار هر ماه کمی از بودجه هزینه دارد.",
+                    tutorial_6: "آموزش کامل شد! اکنون شما بودجه را برای یک دوره چهار ماهه مدیریت می‌کنید. نرخ 'مصرف' را برای پیروزی زیر ۱۵٪ نگه دارید. اگر به ۳۰٪ برسد، می‌بازید. موفق باشید!",
                 }
             }
         };
@@ -423,7 +422,7 @@
         const TUTORIAL_LAST_STEP = 6;
         
         let gameState = {
-            month: 0,
+            month: 1,
             budget: 1000,
             isEducationRunning: false,
             nodes: [],
@@ -448,7 +447,9 @@
 
             document.querySelectorAll('[data-lang-key]').forEach(el => {
                 const key = el.getAttribute('data-lang-key');
-                if (TRANSLATIONS[lang][key]) {
+                if (key === 'end_modal_link_text_full') { // Special case for HTML content
+                    el.innerHTML = TRANSLATIONS[lang][key] || '';
+                } else if (TRANSLATIONS[lang][key]) {
                     el.textContent = TRANSLATIONS[lang][key];
                 }
             });
@@ -459,7 +460,9 @@
             gameState.isPaused = false;
             
             gameState.nodes = STUDENT_NAMES.map((name, i) => ({
-                id: i, name: name, state: 'S', isInfluencer: false, isLeader: false
+                id: i, name: name, state: 'S', isInfluencer: false, isLeader: false,
+                x: Math.random() * width, // Initial position
+                y: Math.random() * height
             }));
 
             gameState.links = [
@@ -494,52 +497,55 @@
 
         function setupTutorialStep(step) {
             gameState.tutorialStep = step;
-            // Reset node states for a clean slate, then apply scripted events
+            // Reset visual state then apply scripted events for the step
             gameState.nodes.forEach(n => { n.state = 'S'; n.isLeader = false; });
             gameState.isEducationRunning = false;
 
             switch(step) {
-                case 0:
-                    // Initial state is clean
+                case 0: // All Susceptible
                     break;
-                case 1:
-                    gameState.nodes[11].state = 'E'; // Leo
-                    gameState.nodes[12].state = 'E'; // Mia
-                    break;
-                case 2:
+                case 1: // Some become Experimenting
                     gameState.nodes[11].state = 'E';
-                    gameState.nodes[9].state = 'E';
+                    gameState.nodes[12].state = 'E';
                     break;
-                case 3:
-                     gameState.nodes[2].state = 'U'; // Chloe (influencer)
+                case 2: // One becomes Using
+                    gameState.nodes[11].state = 'E';
+                    gameState.nodes[4].state = 'U';
                     break;
-                case 4:
-                    gameState.nodes[2].state = 'R';
+                case 3: // Using becomes Recovered (after outreach)
+                    gameState.nodes[4].state = 'R';
                     break;
-                case 5:
-                    // clean state to just show the button
+                case 4: // Recovered becomes Leader (after recruit)
+                    gameState.nodes[4].state = 'R';
+                    gameState.nodes[4].isLeader = true;
                     break;
-                case TUTORIAL_LAST_STEP:
+                case 5: // Education is on
+                    gameState.isEducationRunning = true;
+                    break;
+                case TUTORIAL_LAST_STEP: // End tutorial
                     gameState.hasCompletedTutorial = true;
                     startFullGame();
-                    return; // a full UI update is called in startFullGame
+                    return;
             }
             updateUI();
             simulation.alpha(0.3).restart();
         }
 
         function startFullGame() {
-            gameState.month = 0;
+            gameState.tutorialStep = TUTORIAL_LAST_STEP;
+            gameState.isPaused = false;
+            gameState.month = 1;
             gameState.budget = 1000;
             gameState.isEducationRunning = false;
             gameState.lastMonthUsingPercent = 0;
             gameState.nodes.forEach(n => { n.state = 'S'; n.isLeader = false; });
-            // Set initial state for the full game: 3 random users
+            
             const shuffledNodes = [...gameState.nodes].sort(() => 0.5 - Math.random());
             for (let i = 0; i < 3; i++) {
-                if (shuffledNodes[i]) {
-                    shuffledNodes[i].state = 'U';
-                }
+                if (shuffledNodes[i]) shuffledNodes[i].state = 'U';
+            }
+             for (let i = 3; i < 5; i++) {
+                if (shuffledNodes[i]) shuffledNodes[i].state = 'E';
             }
             updateUI();
         }
@@ -547,14 +553,14 @@
         function advanceMonth() {
             if (gameState.isPaused) return;
 
-            // Handle tutorial progression
             if (gameState.tutorialStep < TUTORIAL_LAST_STEP) {
+                // In the tutorial, 'End Month' progresses the narrative
                 if (gameState.tutorialStep === 0) setupTutorialStep(1);
                 else if (gameState.tutorialStep === 1) setupTutorialStep(2);
                 return;
             }
 
-            // --- Full Game Logic ---
+            // Normal game logic
             gameState.isPaused = true;
             runMonthlySimulation();
             const usingCount = gameState.nodes.filter(n => n.state === 'U').length;
@@ -566,7 +572,7 @@
             }
             
             gameState.month++;
-            if (gameState.month >= 4) {
+            if (gameState.month > 4) {
                 endGame(usingPercent < WIN_THRESHOLD, false);
                 return;
             }
@@ -611,23 +617,27 @@
                 monthValueEl.textContent = '-';
                 budgetValueEl.textContent = '----';
 
-                // Disable all buttons first
+                // Disable all intervention buttons by default during tutorial
                 const allButtons = [educationBtn, supportBtn, leadersBtn, outreachBtn];
                 allButtons.forEach(btn => btn.disabled = true);
                 educationBtn.classList.remove('active');
 
-                // Enable buttons based on tutorial step
+                // Enable only the specific button required for the current tutorial step
                 switch(gameState.tutorialStep) {
-                    case 2: supportBtn.disabled = false; break;
-                    case 3: outreachBtn.disabled = false; break;
-                    case 4: leadersBtn.disabled = false; break;
-                    case 5: educationBtn.disabled = false; break;
+                    case 2: outreachBtn.disabled = false; break;
+                    case 3: leadersBtn.disabled = false; break;
+                    case 4: educationBtn.disabled = false; break;
                 }
-                nextMonthBtn.disabled = [2,3,4,5].includes(gameState.tutorialStep);
+                 if(gameState.tutorialStep === 5){
+                    educationBtn.disabled = false;
+                    educationBtn.classList.add('active');
+                 }
 
-            } else {
-                // Full game UI
-                narrativeTextEl.textContent = gameState.month === 0 ? TRANSLATIONS[lang].narrative_start : TRANSLATIONS[lang].narrative_month;
+                // Control the 'End Month' button during the tutorial
+                nextMonthBtn.disabled = [2, 3, 4, 5].includes(gameState.tutorialStep);
+
+            } else { // Normal Game UI
+                narrativeTextEl.textContent = gameState.month === 1 ? TRANSLATIONS[lang].narrative_start : TRANSLATIONS[lang].narrative_month;
                 monthValueEl.textContent = gameState.month;
                 budgetValueEl.textContent = Math.max(0, gameState.budget);
                 const budget = gameState.budget;
@@ -645,22 +655,25 @@
                 leadersBtn.textContent = `${TRANSLATIONS[lang].leaders_btn} ($${COSTS.leaders})`;
                 outreachBtn.textContent = `${TRANSLATIONS[lang].outreach_btn} ($${COSTS.outreach})`;
             }
+            render();
         }
 
         function handleIntervention(type) {
              if (gameState.tutorialStep < TUTORIAL_LAST_STEP) {
-                 // Handle tutorial actions
+                // In tutorial, interventions don't cost budget and just advance the state
                  switch(type) {
-                     case 'support': if (gameState.tutorialStep === 2) setupTutorialStep(3); break;
-                     case 'outreach': if (gameState.tutorialStep === 3) setupTutorialStep(4); break;
-                     case 'leaders': if (gameState.tutorialStep === 4) setupTutorialStep(5); break;
-                     case 'education': if (gameState.tutorialStep === 5) setupTutorialStep(6); break;
+                     case 'outreach': if (gameState.tutorialStep === 2) setupTutorialStep(3); break;
+                     case 'leaders': if (gameState.tutorialStep === 3) setupTutorialStep(4); break;
+                     case 'education': 
+                        if (gameState.tutorialStep === 4) setupTutorialStep(5);
+                        else if (gameState.tutorialStep === 5) setupTutorialStep(6);
+                        break;
                  }
                  return;
              }
 
-            // Full game intervention logic
-            if (gameState.isPaused && gameState.month > 0) return;
+            // Normal game logic
+            if (gameState.isPaused && gameState.month > 1) return;
 
             switch(type) {
                 case 'education':
@@ -742,38 +755,59 @@
         
         // --- RENDERING ---
         function render() {
-            if (!gameState.nodes || gameState.nodes.length === 0) return;
+            if (!gameState.nodes || gameState.nodes.length === 0 || !width || !height) return;
             const dpr = window.devicePixelRatio || 1;
             
-            // Constrain nodes to be visible within the UI panels
+            ctx.clearRect(0, 0, width, height);
+
             const padding = NODE_RADIUS * 2;
             const topBoundary = headerPanel.offsetHeight + padding;
             const leftBoundary = interventionPanel.offsetWidth + padding;
             const rightBoundary = width - padding;
             const bottomBoundary = height - controlPanel.offsetHeight - padding;
 
+            // Apply boundaries to node positions
             gameState.nodes.forEach(d => {
                 d.x = Math.max(leftBoundary, Math.min(rightBoundary, d.x));
                 d.y = Math.max(topBoundary, Math.min(bottomBoundary, d.y));
             });
 
-            ctx.clearRect(0, 0, canvas.width / dpr , canvas.height / dpr);
-            ctx.lineCap = 'round';
+            // Draw links
+            ctx.strokeStyle = '#aaa';
             ctx.lineWidth = 2;
-            gameState.links.forEach(d => {
-                ctx.beginPath(); ctx.moveTo(d.source.x, d.source.y); ctx.lineTo(d.target.x, d.target.y);
-                ctx.strokeStyle = '#aaa'; ctx.stroke();
-            });
-            gameState.nodes.forEach(d => {
-                const stateAuras = { S: 'rgba(0, 0, 255, 0.4)', E: 'rgba(255, 255, 0, 0.4)', U: 'rgba(255, 0, 0, 0.4)', R: 'rgba(0, 255, 0, 0.4)' };
-                if(d.state in stateAuras) {
-                    ctx.fillStyle = stateAuras[d.state]; ctx.beginPath();
-                    ctx.arc(d.x, d.y, NODE_RADIUS + 4, 0, 2 * Math.PI); ctx.fill();
+            ctx.beginPath();
+            gameState.links.forEach(link => {
+                if (link.source && link.target && typeof link.source.x !== 'undefined' && typeof link.target.x !== 'undefined') {
+                    ctx.moveTo(link.source.x, link.source.y);
+                    ctx.lineTo(link.target.x, link.target.y);
                 }
-                ctx.beginPath(); ctx.arc(d.x, d.y, NODE_RADIUS, 0, 2 * Math.PI);
-                ctx.fillStyle = d.isLeader ? '#FFD700' : (d.isInfluencer ? '#f0eada' : '#fff');
-                ctx.fill(); ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
-                drawFace(ctx, d.x, d.y, d.state);
+            });
+            ctx.stroke();
+
+            // Draw nodes
+            gameState.nodes.forEach(node => {
+                 if (typeof node.x !== 'undefined' && typeof node.y !== 'undefined') {
+                    // Draw halo
+                    const stateAuras = { S: 'rgba(0, 0, 255, 0.4)', E: 'rgba(255, 255, 0, 0.4)', U: 'rgba(255, 0, 0, 0.4)', R: 'rgba(0, 255, 0, 0.4)' };
+                    if (node.state in stateAuras) {
+                        ctx.fillStyle = stateAuras[node.state];
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, NODE_RADIUS + 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+
+                    // Draw main circle
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, NODE_RADIUS, 0, 2 * Math.PI);
+                    ctx.fillStyle = node.isLeader ? '#FFD700' : (node.isInfluencer ? '#f0eada' : '#fff');
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw face
+                    drawFace(ctx, node.x, node.y, node.state);
+                }
             });
         }
         
@@ -819,14 +853,6 @@
             } else { tooltipEl.style.opacity = 0; }
         }
 
-        function handleDemoClick(fromState, toState) {
-            const target = gameState.nodes.find(n => n.state === fromState);
-            if(target) {
-                target.state = toState;
-                render();
-            }
-        }
-
         function resizeCanvas() {
             width = container.clientWidth;
             height = container.clientHeight;
@@ -839,7 +865,6 @@
             ctx.scale(dpr, dpr);
 
             if (simulation && simulation.force("center")) {
-                // Adjust the center of the graph to avoid UI panels
                 const padding = NODE_RADIUS * 2;
                 const topBoundary = headerPanel.offsetHeight + padding;
                 const leftBoundary = interventionPanel.offsetWidth + padding;
@@ -873,15 +898,10 @@
             updateUI();
         });
 
-        // Demo buttons
-        document.getElementById('demo-s-e').addEventListener('click', () => handleDemoClick('S', 'E'));
-        document.getElementById('demo-e-u').addEventListener('click', () => handleDemoClick('E', 'U'));
-        document.getElementById('demo-u-r').addEventListener('click', () => handleDemoClick('U', 'R'));
-        document.getElementById('demo-r-s').addEventListener('click', () => handleDemoClick('R', 'S'));
-
         // --- INITIALIZATION ---
         setupInitialState();
         
     </script>
 </body>
 </html>
+
