@@ -18,6 +18,9 @@ Both simulations are based on the **SEUR (Susceptible, Experimenting, Using, Rec
 The project provides a practical understanding of how **social influence** impacts health-related behaviors.  
 A live, playable version of the web simulation is hosted on **GitHub Pages**.
 
+A live, playable version of the web simulation is hosted here:  
+[Play the Web Simulation](https://matinrnz.github.io/Peer-Pressure/)  
+
 ---
 
 ## Key Features of the Web Simulation
